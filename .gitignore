@@ -1,0 +1,21 @@
+
+## 5. Ajouter un .gitignore
+
+Dans `.gitignore` :
+
+```gitignore
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Environnements virtuels
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Variables d'environnement
+.env
