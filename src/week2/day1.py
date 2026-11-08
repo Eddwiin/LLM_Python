@@ -1,5 +1,8 @@
 import json
+import sqlite3
+
 MODEL = "gpt-4.1-mini"
+DB = "prices.db"
 
 def first_conversation(openai):
     system_prompt = """
@@ -25,6 +28,15 @@ def first_conversation(openai):
 class Chat:
     def __init__(self, openai):
         self.openai = openai
+        self.init_db()
+
+    def init_db(self):
+        with sqlite3.connect(DB) as conn:
+            conn.execute('CREATE TABLE IF NOT EXISTS prices (city TEXT PRIMARY KEY, price REAL)')
+
+        ticket_prices = {"london": 799, "paris": 899, "tokyo": 1420, "sydney": 2999}
+        for city, price in ticket_prices.items():
+            self.set_ticket_price(city, price)
 
     def chat(self, message, history):
         system_message = """
@@ -63,11 +75,18 @@ class Chat:
         return response.choices[0].message.content
 
     def get_ticket_price(self, destination_city):
-        ticket_prices = {"london": "$799", "paris": "$899", "tokyo": "$1400", "berlin": "$499"}
+        print(f"DATABASE TOOL CALLED: Getting price for {destination_city}", flush=True)
+        with sqlite3.connect(DB) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT price FROM prices WHERE city = ?', (destination_city.lower(),))
+            result = cursor.fetchone()
+            return f"Ticket price to {destination_city} is ${result[0]}" if result else "No price data available for this city"
 
-        print(f"Tool called for city {destination_city}")
-        price = ticket_prices.get(destination_city.lower(), "Unknown ticket price")
-        return f"The price of a ticket to {destination_city} is {price}"
+    def set_ticket_price(self,city, price):
+        with sqlite3.connect(DB) as conn:
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO prices (city, price) VALUES (?, ?) ON CONFLICT(city) DO UPDATE SET price = ?', (city.lower(), price, price))
+            conn.commit()
 
     def handle_tool_call(self, message):
         tool_call = message.tool_calls[0]
