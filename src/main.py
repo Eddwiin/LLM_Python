@@ -1,6 +1,6 @@
 from config.load_openai_key import api_key
 from openai import OpenAI
-from week2.day1 import Chat
+from week2.day4 import Chat
 import gradio as gr
 
 openai = OpenAI(api_key=api_key)

@@ -59,9 +59,31 @@ class Chat:
                 "additionalProperties": False
             }
         }
+
+        set_price_function = {
+            "name": "set_ticket_price",
+            "description": "Set the price of ticket for a city",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "destination_city": {
+                        "type": "string",
+                        "description": "The new city need to be add in database"
+                    },
+                    "price": {
+                        "type": "number",
+                        "description": "The price of ticket to the new city to add in database"
+                    }
+                },
+                "required": ["destiny_city", "price"],
+                "additionalProperties": False
+            },
+
+        }
+
         history = [{ "role": h["role"], "content": h["content"]} for h in history]
         messages = [{ "role": "system", "content": system_message}] + history + [{"role": "user", "content": message}]
-        tools = [{"type": "function", "function": price_function}]
+        tools = [{"type": "function", "function": price_function}, {"type": "function", "function": set_price_function}]
 
         response = self.openai.chat.completions.create(model=MODEL, messages=messages, tools=tools)
 
@@ -87,6 +109,7 @@ class Chat:
             cursor = conn.cursor()
             cursor.execute('INSERT INTO prices (city, price) VALUES (?, ?) ON CONFLICT(city) DO UPDATE SET price = ?', (city.lower(), price, price))
             conn.commit()
+        return f"The price of a ticket to {city} is now ${price}"
 
     def handle_tool_call(self, message):
         tool_call = message.tool_calls[0]
@@ -111,6 +134,17 @@ class Chat:
                 responses.append({
                     "role": "tool",
                     "content": price_details,
+                    "tool_call_id": tool_call.id
+                })
+
+            elif tool_call.function.name == "set_ticket_price":
+                arguments = json.loads(tool_call.function.arguments)
+                city = arguments.get("destination_city")
+                price = arguments.get("price")
+                set_price = self.set_ticket_price(city, price)
+                responses.append({
+                    "role": "tool",
+                    "content": set_price,
                     "tool_call_id": tool_call.id
                 })
         return responses
