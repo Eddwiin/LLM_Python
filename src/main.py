@@ -5,9 +5,13 @@ import gradio as gr
 
 openai = OpenAI(api_key=api_key)
 
+chatInstance = Chat(openai)
+
 def create_first_ui_with_gradio():
-    chatInstance = Chat(openai)
     gr.ChatInterface(fn=chatInstance.chat).launch()
+
+def get_ticket_price(city):
+    chatInstance.get_ticket_price(city)
 
 def main():
     create_first_ui_with_gradio()
