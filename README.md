@@ -6,6 +6,10 @@ Un mini-projet Python.
 
 ```bash
 python src/main.py
+```
+
+## Activer l'environnement virtuel
 
 ```bash
 source .venv/bin/activate
+``

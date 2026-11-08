@@ -1,3 +1,5 @@
+MODEL = "gpt-4.1-mini"
+
 def first_conversation(openai):
     system_prompt = """
         You are a snarky assistant that analyzes the contents of a website,
@@ -18,3 +20,18 @@ def first_conversation(openai):
     
     response = openai.chat.completions.create(model="gpt-4.1-mini", messages=messages)
     return response.choices[0].message.content
+
+class Chat:
+    def __init__(self, openai):
+        self.openai = openai
+
+    def chat(self, message, history):
+        system_message = """
+                You are a helpful assistant for an Airline called FlightAI.
+                Give short, courteous answers, no more than 1 sentence.
+                Always be accurate. If you don't know the answer, say so.
+            """
+        history = [{ "role": h["role"], "content": h["content"]} for h in history]
+        messages = [{ "role": "system", "content": system_message}] + history + [{"role": "user", "content": message}]
+        response = self.openai.chat.completions.create(model=MODEL, messages=messages)
+        return response.choices[0].message.content
