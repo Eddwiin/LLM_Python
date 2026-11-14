@@ -4,6 +4,7 @@ from week2.day4 import Chat
 from week2.day5 import Artist
 import gradio as gr
 from IPython.display import display
+from week4.day3 import System
 
 openai = OpenAI(api_key=api_key)
 
@@ -25,7 +26,8 @@ def talker():
     gr.ChatInterface(fn=artistInstance.chat).launch()
 
 def main():
-    talker()
+    system = System(openai)
+    system.compile_and_run()
 
 
 if __name__ == "__main__":
